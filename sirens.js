@@ -9,7 +9,7 @@
         return result;
     }
                 
-    function getJSAttr (JSArray,address,attr) {
+    function getJSAttr (JSArray,address,attr,exact) {     //  exact forces an exact format match, so 'R19C34' <> 'AH19'
         address = address.toLowerCase().replace('#','');
         attr    = attr.toLowerCase();
         var result = null;
@@ -23,6 +23,13 @@
                  }
              }
         }
+
+        if (!result && !exact) { // try the other format
+            var alterEgo = xlCoords(address);
+            address = alterEgo.alt;
+            result = getJSAttr (JSArray,address,attr,true);
+        }
+
         return result;
     }
 
@@ -44,6 +51,7 @@
           results.yaxis  = (result_rc) ? result_rc[1] : result_a1[2];                // numeric
           results.rc     = (result_rc) ? 'R' + result_rc[1] + 'C' + result_rc[2]   : 'R' + result_a1[2] + 'C' + lettersToCol(result_a1[1]);
           results.a1     = (result_rc) ? colToLetters(result_rc[2]) + result_rc[1] : result_a1[1] + result_a1[2];
+          results.alt    = (result_rc) ? results.a1 : results.rc;
           return results;
 
                 function colToLetters(col) {
@@ -66,7 +74,14 @@
 
     }   // eof xlCoords
     
-                var fred = [{"Address":"Z31","MaxLength":28,"Color":"Red","Size":"Large"},{"Address":"R12C44","MaxLength":12,"Color":"Blue","Size":"Med"}];
-            var maxLen = getJSAttr (fred,'Z31','maxLength').toString();
-            
-            
+
+    function lowercaseKeys(JsonObj) {
+         var json = JSON.stringify(JsonObj);
+         var newJson = json.replace(/"([\w]+)":/g, function($0, $1) {return ('"' + $1.toLowerCase() + '":'); });
+         return JSON.parse(newJson);
+    }
+
+module.exports.getRangeValue = getRangeValue;
+module.exports.getJSAttr = getJSAttr;
+module.exports.xlCoords = xlCoords;
+module.exports.lowercaseKeys = lowercaseKeys;
